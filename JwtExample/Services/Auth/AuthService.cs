@@ -2,8 +2,6 @@
 using System.Security.Claims;
 using JwtExample.Config;
 using JwtExample.Entity;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,7 +26,7 @@ public class AuthService: IAuthService
             response.Message = "User already exists.";
             return response;
         }
-        
+
         CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
 
         user.PasswordHash = passwordHash;
@@ -37,6 +35,7 @@ public class AuthService: IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         response.Data = user.Id;
+        response.Message = "Used saved with exit";
         return response;
     }
 
@@ -71,9 +70,9 @@ public class AuthService: IAuthService
         }
         return false;
     }
-    
-    
-    
+
+
+
     public void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
         using (var hmac = new System.Security.Cryptography.HMACSHA512())
@@ -97,7 +96,7 @@ public class AuthService: IAuthService
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.Name, user.Username)
         };
 
         string appSettingsToken = _configuration.GetSection("AppSettings:Token").Value;
@@ -113,8 +112,8 @@ public class AuthService: IAuthService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(2),
-            SigningCredentials = creds
+                    Expires = DateTime.Now.AddDays(2),
+                    SigningCredentials = creds
         };
 
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -122,5 +121,4 @@ public class AuthService: IAuthService
 
         return tokenHandler.WriteToken(token);
     }
-    
 }
